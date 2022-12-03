@@ -1,5 +1,7 @@
 #if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
     StructuredBuffer<uint> _Hashes;
+    StructuredBuffer<float3> _Positions;
+    StructuredBuffer<float3> _Normals;
 #endif
 
 float4 _Config;
@@ -11,22 +13,28 @@ void ConfigureProcedural () {
         // we add a very small number 0.000001 because of floating point limitations when 
         // we do instanceID/resolution we get numbers that are a tiny bit smaller than a whole number
         // Which then causes misalignment. 
-        float v = floor(_Config.y * unity_InstanceID + 0.00001);
-        float u = unity_InstanceID - _Config.x * v;
+        // float v = floor(_Config.y * unity_InstanceID + 0.00001);
+        // float u = unity_InstanceID - _Config.x * v;
+        // We are now receiving positions from a buffer instead of calculating it from the instance ID
 
         // Now we define the object to world transformation
         // We start with a 0s 4x4 matrix
         unity_ObjectToWorld = 0.0;
         // We set the last column to the position of the object
+        //     // We scale the position to be between 0 and 1 with 1/resolution and center it around the origin.
+        //     _Config.y * (u + 0.5) - 0.5,
+        //     // We have the 4th byte of the hash function that we dont use in the colour. We can instead use it to define an offset
+        //     // in the y direction based on the hash
+        //     _Config.z * ((1.0 / 255.0) * (_Hashes[unity_InstanceID] >> 24) - 0.5),
+        //     _Config.y * (v + 0.5) - 0.5,
+        // Once again we have position already
         unity_ObjectToWorld._m03_m13_m23_m33 = float4(
-            // We scale the position to be between 0 and 1 with 1/resolution and center it around the origin.
-            _Config.y * (u + 0.5) - 0.5,
-            // We have the 4th byte of the hash function that we dont use in the colour. We can instead use it to define an offset
-            // in the y direction based on the hash
-            _Config.z * ((1.0 / 255.0) * (_Hashes[unity_InstanceID] >> 24) - 0.5),
-            _Config.y * (v + 0.5) - 0.5,
-            1.0
-        );
+			_Positions[unity_InstanceID],
+			1.0
+		);
+        // We still want that y offset based on the 4th byte of the hash function
+        // With normals we can adjust the displacement in the nromal direction using the normal vector
+        unity_ObjectToWorld._m03_m13_m23 +=  _Config.z * ((1.0 / 255.0) * (_Hashes[unity_InstanceID] >> 24) - 0.5) * _Normals[unity_InstanceID];
         // We also scale down the cube so that if we give a uniform coordinate it should tile the plane
         unity_ObjectToWorld._m00_m11_m22 = _Config.y;
     #endif

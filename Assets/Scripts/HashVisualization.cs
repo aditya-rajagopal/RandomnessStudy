@@ -8,6 +8,15 @@ using static Unity.Mathematics.math;
 
 public class HashVisualization : MonoBehaviour
 {
+    public enum Shape { Plane, Sphere, OctaSphere, Torus }
+
+	static Shapes.ScheduleDelegate[] shapeJobs = {
+		Shapes.Job<Shapes.Plane>.ScheduleParallel,
+		Shapes.Job<Shapes.Sphere>.ScheduleParallel,
+		Shapes.Job<Shapes.OctaSphere>.ScheduleParallel,
+		Shapes.Job<Shapes.Torus>.ScheduleParallel
+	};
+
     [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, CompileSynchronously = true)]
     struct HashJob : IJobFor {
 
@@ -75,6 +84,10 @@ public class HashVisualization : MonoBehaviour
     Mesh instanceMesh;
     [SerializeField]
     Material material;
+    [SerializeField]
+	Shape shape = Shape.OctaSphere;
+    [SerializeField, Range(0.1f, 10f)]
+	float instanceScale = 2f;
     [SerializeField, Range(2, 512)]
     int resolution = 16;
     // [SerializeField, Range(-2f, 2f)]
@@ -140,7 +153,7 @@ public class HashVisualization : MonoBehaviour
         propertyBlock.SetBuffer(hashesId, hashesBuffer);
         propertyBlock.SetBuffer(positionsId, positionsBuffer);
         propertyBlock.SetBuffer(normalsId, normalsBuffer);
-        propertyBlock.SetVector(configID, new Vector4(resolution, 1f / resolution, displacement));
+        propertyBlock.SetVector(configID, new Vector4(resolution,  instanceScale / resolution, displacement));
     }
 
     void OnDisable()
@@ -169,7 +182,8 @@ public class HashVisualization : MonoBehaviour
 			isDirty = false;
             transform.hasChanged = false;
 
-			JobHandle handle = Shapes.Job.ScheduleParallel(
+            // We can now pass the template arguemtn Shapes.Plane (or any other) to generically generate a new shape
+			JobHandle handle = shapeJobs[(int)shape](
 				positions, normals, transform.localToWorldMatrix, resolution, default
 			);
 

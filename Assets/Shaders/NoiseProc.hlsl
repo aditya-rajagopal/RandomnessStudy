@@ -19,22 +19,29 @@ void ConfigureProcedural () {
 }
 
 // Dont be an idito and set return type to unit and be surprised when you see all cubes have a black colour
-float3 GetNoiseColor () {
+float4 GetNoiseColor (bool EnableAlpha) {
 	#if defined(UNITY_PROCEDURAL_INSTANCING_ENABLED)
 		float noise = _Noise[unity_InstanceID];
-		return noise < 0.0 ? float3(-noise, 0.0, 0.0) : noise;
+        if (EnableAlpha)
+        {
+		    return noise < 0.0 ? float4(0.0, 0.0, 0.0, 0.0f) : float4(noise, noise, noise, 1.0);
+        }
+        else
+        {
+            return noise < 0.0 ? float4(-noise, 0.0, 0.0, 1.0f) : float4(noise, noise, noise, 1.0);
+        }
 	#else
 		return 1.0;
 	#endif
 }
 
 // Standard InOut function to be able to put it in a shader graph.
-void ShaderGraphFunction_float (float3 In, out float3 Out, out float3 Color) {
+void ShaderGraphFunction_float (float3 In, bool EnableAlpha, out float3 Out, out float4 Color) {
 	Out = In;
-	Color = GetNoiseColor();
+	Color = GetNoiseColor(EnableAlpha);
 }
 
-void ShaderGraphFunction_half (half3 In, out half3 Out, out half3 Color) {
+void ShaderGraphFunction_half (half3 In, bool EnableAlpha, out half3 Out, out half4 Color) {
 	Out = In;
-	Color = GetNoiseColor();
+	Color = GetNoiseColor(EnableAlpha);
 }

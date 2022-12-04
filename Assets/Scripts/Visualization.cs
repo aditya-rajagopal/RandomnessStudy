@@ -21,6 +21,11 @@ public abstract class Visualization : MonoBehaviour
     [SerializeField]
     Material material;
     [SerializeField]
+    public bool enableAnimation = false;
+
+    [SerializeField, Range(0, 100)]
+    public float animationSpeed = 0.1f;
+    [SerializeField]
 	Shape shape = Shape.OctaSphere;
     [SerializeField, Range(0.1f, 10f)]
 	float instanceScale = 2f;
@@ -108,7 +113,7 @@ public abstract class Visualization : MonoBehaviour
     }
 
     private void Update() {
-        if (isDirty || transform.hasChanged) {
+        if (isDirty || transform.hasChanged || enableAnimation) {
 			isDirty = false;
             transform.hasChanged = false;
 

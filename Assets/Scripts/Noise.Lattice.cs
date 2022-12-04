@@ -5,7 +5,8 @@ using static Unity.Mathematics.math;
 
 public static partial class Noise
 {
-    struct LatticeSpan4 {
+    // we need to change this struct from private to public to be able to access it in the Ilattice interfaces
+    public struct LatticeSpan4 {
         public int4 p0, p1;
 
         // Add a variable to store the relative coordiante for the gradients
@@ -18,27 +19,80 @@ public static partial class Noise
     }
 
 
-    static LatticeSpan4 GetLatticeSpan4 (float4 coordinates) {
-		float4 points = floor(coordinates);
-		LatticeSpan4 span;
-		span.p0 = (int4)points;
-		span.p1 = span.p0 + 1;
-        span.g0 = coordinates - span.p0;
-        // p1 sits exactly 1 unit away so we can get g1 by subtracting 1 from g0 
-        span.g1 = span.g0 - 1f;
-		span.t = coordinates - points;
-        // span.t = smoothstep(0f, 1f, span.t);
-        // The above function smoothstep is 3t^2 - 6t^3 which means its first order derivative is continuous
-        // and itends at 0 boths sides of the smoothstep. But its second derivative is not continuous
-        // we instead use the following function which is C2-continious
-        // This isnt a problem for us but if we do a smooth mesh or something we will see very visable creases.
-        span.t = span.t * span.t * span.t * (span.t * (span.t * 6f - 15f) + 10f);
-		return span;
+    public interface ILattice {
+		LatticeSpan4 GetLatticeSpan4 (float4 coordinates, int frequency);
 	}
 
+    // Put our old lattice span function into a struct that is an ILattice interface
+    public struct LatticeNormal : ILattice {
+        public LatticeSpan4 GetLatticeSpan4 (float4 coordinates, int frequency) {
+            // we scale the coordinates here instead of when we pass the position to lattice
+            coordinates *= frequency;
+            float4 points = floor(coordinates);
+            LatticeSpan4 span;
+            span.p0 = (int4)points;
+            span.p1 = span.p0 + 1;
+            span.g0 = coordinates - span.p0;
+            // p1 sits exactly 1 unit away so we can get g1 by subtracting 1 from g0 
+            span.g1 = span.g0 - 1f;
+            span.t = coordinates - points;
+            // span.t = smoothstep(0f, 1f, span.t);
+            // The above function smoothstep is 3t^2 - 6t^3 which means its first order derivative is continuous
+            // and itends at 0 boths sides of the smoothstep. But its second derivative is not continuous
+            // we instead use the following function which is C2-continious
+            // This isnt a problem for us but if we do a smooth mesh or something we will see very visable creases.
+            span.t = span.t * span.t * span.t * (span.t * (span.t * 6f - 15f) + 10f);
+            return span;
+        }
+    }
+
+    // We can make a seperate struct for the LatticeTiling method
+    public struct LatticeTiling : ILattice {
+        public LatticeSpan4 GetLatticeSpan4 (float4 coordinates, int frequency) {
+            // we scale the coordinates here instead of when we pass the position to lattice
+            coordinates *= frequency;
+            float4 points = floor(coordinates);
+            LatticeSpan4 span;
+            span.p0 = (int4)points;
+            span.g0 = coordinates - span.p0;
+            // p1 sits exactly 1 unit away so we can get g1 by subtracting 1 from g0 
+            span.g1 = span.g0 - 1f;
+
+            // we will make it so it repeats span points equal to the frequency
+            // we do this after calculating gradients
+            
+            // span.p0 %= frequency;
+            // factorial is not vectorized so this step is inefficient
+            // we can instead use floating point division of points with frequnecy taking the floor
+            // the multiplying frequency again . Then subtract it from p0 to get the remaineder.
+            // another thing to be aware of is directly converting floating point divisions can be dangerous
+            // due to precision issues. It is better to round up before converting. This will ensure
+            // that it will work on all CPU types.
+            span.p0 -= (int4)ceil(points / frequency) * frequency;
+            // Although with just the modulos we get tiling it ends up being incorrect. 
+            span.p0 = select(span.p0, span.p0 + frequency, span.p0 < 0);
+
+            // we know that we need to repeat the pattern every frequency lattice points
+            // so we can simply calculate p1 from p0 and check if p1 is frequency
+            // if it is set it ot 0 to reset it. This works because p0 is also reset.
+            span.p1 = span.p0 + 1;
+			span.p1 = select(span.p1, 0, span.p1 == frequency);
+            span.t = coordinates - points;
+            // span.t = smoothstep(0f, 1f, span.t);
+            // The above function smoothstep is 3t^2 - 6t^3 which means its first order derivative is continuous
+            // and itends at 0 boths sides of the smoothstep. But its second derivative is not continuous
+            // we instead use the following function which is C2-continious
+            // This isnt a problem for us but if we do a smooth mesh or something we will see very visable creases.
+            span.t = span.t * span.t * span.t * (span.t * (span.t * 6f - 15f) + 10f);
+            return span;
+        }
+    }
+
+
+
     // we can make a template of Lattice1D to use a generic gradient function
-    public struct LatticeID<G> : INoise where G : struct, IGradient {
-        public float4 GetNoise4(float4x3 positions, SmallXXHash4 hash) {
+    public struct Lattice1D<L, G> : INoise where L : struct, ILattice where G : struct, IGradient {
+        public float4 GetNoise4(float4x3 positions, SmallXXHash4 hash, int frequency) {
             // int4 p0 = (int4)floor(positions.c0);
             // int4 p1 = p0 + 1;
 
@@ -49,7 +103,7 @@ public static partial class Noise
             // float4 t = positions.c0 - p0;
 
             // we can simplify the calculations above using GetLatticeSpan4
-            LatticeSpan4 x = GetLatticeSpan4(positions.c0);
+            LatticeSpan4 x = default(L).GetLatticeSpan4(positions.c0, frequency);
             // Get the default value struct
             // we will use the value function here instead 
             // This will not change the resutl but will prepare us for other possible functions
@@ -62,15 +116,21 @@ public static partial class Noise
             // We have also changed the Value gradient to temproarly have the function f(x) = x;
             // this produces a periodic variation. Note that the interpolation is smooth because we lerp with a c2-continuous interpolation
             // moved the normalization to the value function
-            return lerp(g.Evaluate(hash.Eat(x.p0), x.g0), g.Evaluate(hash.Eat(x.p1), x.g1), x.t);
+            
+            // we run the EvaluateAfterInterpolation to do any final transformation post interpolation to noise values
+            // such as absolute function to generate turbulent noise.
+            return g.EvaluateAfterInterpolation(lerp(g.Evaluate(hash.Eat(x.p0), x.g0), g.Evaluate(hash.Eat(x.p1), x.g1), x.t));
         }
     }
 
 
     // we can apply the same changes with the gradients to lattice 2D and 3D
-    public struct Lattice2D<G> : INoise where G : struct, IGradient {
-        public float4 GetNoise4(float4x3 positions, SmallXXHash4 hash) {
-            LatticeSpan4 x = GetLatticeSpan4(positions.c0), z = GetLatticeSpan4(positions.c2);
+    public struct Lattice2D<L, G> : INoise where L : struct, ILattice where G : struct, IGradient {
+        public float4 GetNoise4(float4x3 positions, SmallXXHash4 hash, int frequency) {
+            var l = default(L);
+            LatticeSpan4 
+                x = l.GetLatticeSpan4(positions.c0, frequency), 
+                z = l.GetLatticeSpan4(+positions.c2, frequency);
             SmallXXHash4 h0 = hash.Eat(x.p0), h1 = hash.Eat(x.p1);
             var g = default(G);
             // replace the following with gradient function version
@@ -79,7 +139,7 @@ public static partial class Noise
             //         lerp(h1.Eat(z.p0).Floats01A, h1.Eat(z.p1).Floats01A, z.t),
             //         x.t)* 2f - 1f;
             // we pass the correct gradient vector for each point. 
-            return lerp(
+            return g.EvaluateAfterInterpolation(lerp(
                     lerp(
                         g.Evaluate(h0.Eat(z.p0), x.g0, z.g0),
                         g.Evaluate(h0.Eat(z.p1), x.g0, z.g1), 
@@ -88,13 +148,17 @@ public static partial class Noise
                         g.Evaluate(h1.Eat(z.p0), x.g1, z.g0),
                         g.Evaluate(h1.Eat(z.p1), x.g1, z.g1),
                         z.t),
-                    x.t);
+                    x.t));
         }
     }
 
-    public struct Lattice3D<G> : INoise where G : struct, IGradient {
-        public float4 GetNoise4(float4x3 positions, SmallXXHash4 hash) {
-            LatticeSpan4 x = GetLatticeSpan4(positions.c0), y=GetLatticeSpan4(positions.c1), z = GetLatticeSpan4(positions.c2);
+    public struct Lattice3D<L, G> : INoise where L : struct, ILattice where G : struct, IGradient {
+        public float4 GetNoise4(float4x3 positions, SmallXXHash4 hash, int frequency) {
+            var l = default(L);
+            LatticeSpan4 
+                x = l.GetLatticeSpan4(positions.c0, frequency),
+                y = l.GetLatticeSpan4(positions.c1, frequency),
+                z = l.GetLatticeSpan4(positions.c2, frequency);
 
             SmallXXHash4 h0 = hash.Eat(x.p0), h1 = hash.Eat(x.p1),
             h00=h0.Eat(y.p0), h01=h0.Eat(y.p1),
@@ -121,7 +185,7 @@ public static partial class Noise
             //             x.t
             //         ) * 2f - 1f;
             return // lerp between the 2 planes parallel to the YZ plane and along the X axis
-                    lerp( 
+                    g.EvaluateAfterInterpolation(lerp( 
                         // lerp between th two lines parallel to the Z axis in the YZ plane
                         lerp(
                             // Lerp between h000 and h001 along z
@@ -155,7 +219,7 @@ public static partial class Noise
                             y.t
                         ),
                         x.t
-                    );
+                    ));
         }
     }
 

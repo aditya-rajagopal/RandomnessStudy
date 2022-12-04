@@ -21,6 +21,11 @@ public static partial class Noise
         float4 Evaluate (SmallXXHash4 hash, float4 x, float4 y);
 
         float4 Evaluate (SmallXXHash4 hash, float4 x, float4 y, float4 z);
+
+        // We want to introduce terbulance variat of our noise functions. To achieve this we need to add up the
+        // absolute values of the octaves. We will define a function that runs post noise value generation 
+        // and handeled by each gradient type.
+        float4 EvaluateAfterInterpolation (float4 value);
     }
 
     public struct Value : IGradient {
@@ -38,6 +43,9 @@ public static partial class Noise
         public float4 Evaluate (SmallXXHash4 hash, float4 x, float4 y) => hash.Floats01A * 2f - 1f;
 
 		public float4 Evaluate (SmallXXHash4 hash, float4 x, float4 y, float4 z) => hash.Floats01A * 2f - 1f;
+
+        // the normal value noise returns the normal value
+        public float4 EvaluateAfterInterpolation (float4 value) => value;
     }
 
     
@@ -120,6 +128,26 @@ public static partial class Noise
             // its maximum of 0.53528 so we need to maximize xs(1-x) + 0.53528s(x) which yeilds 0.56290
 			return (gx * x + gy * y + gz * z) * (1f / 0.56290f);
         }
+        
+        // So does the basic gradient function
+        public float4 EvaluateAfterInterpolation (float4 value) => value;
+
     }
+
+    // instead of duplicating noise functions to have turbulent variants we will create a template
+    public struct Turbulence<G> : IGradient where G : struct, IGradient {
+
+		public float4 Evaluate (SmallXXHash4 hash, float4 x) =>
+			default(G).Evaluate(hash, x);
+
+		public float4 Evaluate (SmallXXHash4 hash, float4 x, float4 y) =>
+			default(G).Evaluate(hash, x, y);
+
+		public float4 Evaluate (SmallXXHash4 hash, float4 x, float4 y, float4 z) =>
+			default(G).Evaluate(hash, x, y, z);
+
+		public float4 EvaluateAfterInterpolation (float4 value) =>
+			abs(default(G).EvaluateAfterInterpolation(value));
+	}
 
 }

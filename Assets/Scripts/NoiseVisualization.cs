@@ -10,9 +10,9 @@ public class NoiseVisualization : Visualization
     public enum NoiseType {Lattice1D, Lattice2D, Lattice3D};
 
     public Noise.ScheduleDelegate[] NoiseJobs = {
-        Job<LatticeID>.ScheduleParallel,
-        Job<Lattice2D>.ScheduleParallel,
-        Job<Lattice3D>.ScheduleParallel
+        Job<LatticeID<Value>>.ScheduleParallel,
+        Job<Lattice2D<Value>>.ScheduleParallel,
+        Job<Lattice3D<Value>>.ScheduleParallel
     };
     
     [SerializeField]

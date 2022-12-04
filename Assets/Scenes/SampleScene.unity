@@ -271,9 +271,10 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: b7990e29139e5b04f88a085411b1c6ef, type: 2}
   shape: 0
   instanceScale: 2
-  resolution: 64
+  resolution: 256
   displacement: 0.052
-  noiseType: 0
+  noiseType: 1
+  gradientType: 1
   seed: 0
   domain:
     translation:

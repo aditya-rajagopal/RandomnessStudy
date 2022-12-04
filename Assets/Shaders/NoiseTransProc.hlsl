@@ -28,7 +28,7 @@ float4 GetNoiseColor (bool EnableAlpha) {
         }
         else
         {
-            return noise < 0.0 ? float4(0.0f, 0.0, -noise, 1.0f) : float4(noise*0.1, noise, noise*0.3, 1.0);
+            return noise < 0.0 ? float4(0.0, 0.0, 0.0f, 1.0f) : float4(noise, noise, noise, 1.0);
         }
 	#else
 		return 1.0;

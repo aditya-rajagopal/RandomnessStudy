@@ -183,7 +183,7 @@
     "m_FragmentContext": {
         "m_Position": {
             "x": 0.0,
-            "y": 260.0
+            "y": 200.0
         },
         "m_Blocks": [
             {
@@ -373,8 +373,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -666.0,
-            "y": -20.0,
+            "x": -665.0,
+            "y": -25.0,
             "width": 279.0,
             "height": 302.0
         }
@@ -405,7 +405,7 @@
     },
     "m_SourceType": 0,
     "m_FunctionName": "ShaderGraphFunction",
-    "m_FunctionSource": "8f3005ea84dc3854198ef405f97b6e65",
+    "m_FunctionSource": "64416a372a3b9d94b9e9b08718da2141",
     "m_FunctionBody": "Enter function body here..."
 }
 
@@ -956,8 +956,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -289.0,
-            "y": 319.0,
+            "x": -281.0,
+            "y": 277.0,
             "width": 120.0,
             "height": 149.0
         }
@@ -998,7 +998,7 @@
         "m_Id": "7b1034ec34b04e15a548c5011dbfd0ab"
     },
     "m_AllowMaterialOverride": false,
-    "m_SurfaceType": 0,
+    "m_SurfaceType": 1,
     "m_ZTestMode": 4,
     "m_ZWriteControl": 0,
     "m_AlphaMode": 0,

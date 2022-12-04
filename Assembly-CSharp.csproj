@@ -36,16 +36,17 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\Noise.Lattice.cs" />
      <Compile Include="Assets\Scripts\SpaceTRS.cs" />
+     <Compile Include="Assets\Scripts\Visualization.cs" />
      <Compile Include="Assets\Scripts\HashVisualization.cs" />
+     <Compile Include="Assets\Scripts\NoiseVisualization.cs" />
      <Compile Include="Assets\Scripts\SmallXXHash.cs" />
      <Compile Include="Assets\Scripts\Shapes.cs" />
-     <Compile Include="Assets\Scripts\Visualization.cs" />
-     <Compile Include="Assets\Scripts\NoiseVisualization.cs" />
      <Compile Include="Assets\Scripts\MathExtensions.cs" />
      <Compile Include="Assets\Scripts\Noise.cs" />
-     <Compile Include="Assets\Scripts\Noise.Lattice.cs" />
      <Compile Include="Assets\Scripts\Noise.Gradient.cs" />
+     <None Include="Assets\Shaders\NoiseTransProc.hlsl" />
      <None Include="Assets\Shaders\HashPorc.hlsl" />
      <None Include="Assets\Shaders\NoiseProc.hlsl" />
     <Reference Include="UnityEngine">

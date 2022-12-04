@@ -269,10 +269,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   instanceMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: b7990e29139e5b04f88a085411b1c6ef, type: 2}
-  shape: 2
+  shape: 0
   instanceScale: 2
-  resolution: 16
-  displacement: 0.1
+  resolution: 64
+  displacement: 0.052
+  noiseType: 0
   seed: 0
   domain:
     translation:
@@ -284,9 +285,9 @@ MonoBehaviour:
       y: 0
       z: 0
     scale:
-      x: 8
-      y: 8
-      z: 8
+      x: 16
+      y: 16
+      z: 16
 --- !u!4 &848612755
 Transform:
   m_ObjectHideFlags: 0
@@ -379,8 +380,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.27059805, y: -0.6532815, z: 0.27059805, w: 0.6532815}
-  m_LocalPosition: {x: 0.94327915, y: 0.8288704, z: -0.019489154}
+  m_LocalRotation: {x: 0.1231529, y: 0.8767389, z: -0.33602607, w: 0.3213234}
+  m_LocalPosition: {x: -0.6919136, y: 0.936, z: 0.9328954}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

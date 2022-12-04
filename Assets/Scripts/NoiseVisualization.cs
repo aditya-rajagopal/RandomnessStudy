@@ -3,8 +3,20 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
+using static Noise;
+
 public class NoiseVisualization : Visualization
 {
+    public enum NoiseType {Lattice1D, Lattice2D, Lattice3D};
+
+    public Noise.ScheduleDelegate[] NoiseJobs = {
+        Job<LatticeID>.ScheduleParallel,
+        Job<Lattice2D>.ScheduleParallel,
+        Job<Lattice3D>.ScheduleParallel
+    };
+    
+    [SerializeField]
+    public NoiseType noiseType = NoiseType.Lattice3D;
     [SerializeField]
 	int seed;
     [SerializeField]
@@ -31,7 +43,7 @@ public class NoiseVisualization : Visualization
     }
 
     protected override void UpdateVisualization(NativeArray<float3x4> positions, int resolution, JobHandle handle) {
-        handle.Complete();
+        NoiseJobs[(int)noiseType](positions, noise, seed, domain, resolution, handle).Complete();
         noiseBuffer.SetData(noise.Reinterpret<float>(4 * 4));
     }
 }

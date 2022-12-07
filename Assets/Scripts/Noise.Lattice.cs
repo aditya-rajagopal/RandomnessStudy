@@ -21,6 +21,10 @@ public static partial class Noise
 
     public interface ILattice {
 		LatticeSpan4 GetLatticeSpan4 (float4 coordinates, int frequency);
+
+        // To combat tiling not working with voronoi noise we will generate a validation function that check edge cases
+        // since we only do +1 and -1 to the coordinate. This function will assume that the positions are alreeady offset
+        int4 ValidateSingleStep(int4 points, int frequency);
 	}
 
     // Put our old lattice span function into a struct that is an ILattice interface
@@ -44,6 +48,9 @@ public static partial class Noise
             span.t = span.t * span.t * span.t * (span.t * (span.t * 6f - 15f) + 10f);
             return span;
         }
+
+        // the validate step for normal lattice noise functions will  just be the point itself since we are not tiling
+        public int4 ValidateSingleStep (int4 points, int frequency) => points;
     }
 
     // We can make a seperate struct for the LatticeTiling method
@@ -62,7 +69,7 @@ public static partial class Noise
             // we do this after calculating gradients
             
             // span.p0 %= frequency;
-            // factorial is not vectorized so this step is inefficient
+            // modulo is not vectorized so this step is inefficient
             // we can instead use floating point division of points with frequnecy taking the floor
             // the multiplying frequency again . Then subtract it from p0 to get the remaineder.
             // another thing to be aware of is directly converting floating point divisions can be dangerous
@@ -86,6 +93,13 @@ public static partial class Noise
             span.t = span.t * span.t * span.t * (span.t * (span.t * 6f - 15f) + 10f);
             return span;
         }
+
+        // For the tiling function we need to check 2 edge cases. 
+        // 1. when the position after tiling is = to the frequency then the point needs to loop back around to 0
+        // 2. if the point after offset is -1 then it has to loop back to the other side of the tiling to frequency - 1
+        // We do this as we exepect each tile to have points 0 to frquency - 1.
+        public int4 ValidateSingleStep (int4 points, int frequency) => 
+            select(select(points, 0, points == frequency), frequency - 1, points == -1);
     }
 
 

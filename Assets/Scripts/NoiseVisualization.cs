@@ -9,7 +9,8 @@ public class NoiseVisualization : Visualization
 {
     public enum NoiseType {Lattice1D, Lattice2D, Lattice3D};
 
-    public enum GradientType {Value, ValueTerbulant, Perlin, PerlinTerbulant}
+    public enum GradientType {Value, ValueTerbulant, Perlin, PerlinTerbulant, VoronoiWorleyF1, VoronoiWorleyF2, VoronoiWorleyF2MinusF1,
+    VoronoiChebyshevF1, VoronoiChebyshevF2, VoronoiChebyshevF2MinusF1}
 
     [SerializeField]
 	bool enableTiling;
@@ -46,7 +47,57 @@ public class NoiseVisualization : Visualization
 			Job<Lattice2D<LatticeTiling, Turbulence<Value>>>.ScheduleParallel,
 			Job<Lattice3D<LatticeNormal, Turbulence<Value>>>.ScheduleParallel,
 			Job<Lattice3D<LatticeTiling, Turbulence<Value>>>.ScheduleParallel
-		}
+		},
+        {
+            Job<Voronoi1D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi1D<LatticeTiling, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeTiling, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeTiling, Worley, F1>>.ScheduleParallel
+        },
+        {
+            Job<Voronoi1D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi1D<LatticeTiling, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeTiling, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeTiling, Worley, F2>>.ScheduleParallel
+        },
+        {
+            Job<Voronoi1D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi1D<LatticeTiling, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeTiling, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeTiling, Worley, F2MinusF1>>.ScheduleParallel
+        },
+        {
+            // 1D chebyshev is the same as worly so we dont need unity to generate the 
+            // parallel job
+            Job<Voronoi1D<LatticeNormal, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi1D<LatticeTiling, Worley, F1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeNormal, Chebyshev, F1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeTiling, Chebyshev, F1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeNormal, Chebyshev, F1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeTiling, Chebyshev, F1>>.ScheduleParallel
+        },
+        {
+            Job<Voronoi1D<LatticeNormal, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi1D<LatticeTiling, Worley, F2>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeNormal, Chebyshev, F2>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeTiling, Chebyshev, F2>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeNormal, Chebyshev, F2>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeTiling, Chebyshev, F2>>.ScheduleParallel
+        },
+        {
+            Job<Voronoi1D<LatticeNormal, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi1D<LatticeTiling, Worley, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeNormal, Chebyshev, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi2D<LatticeTiling, Chebyshev, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeNormal, Chebyshev, F2MinusF1>>.ScheduleParallel,
+			Job<Voronoi3D<LatticeTiling, Chebyshev, F2MinusF1>>.ScheduleParallel
+        }
     };
 
     // void GenerateNoiseDelegateArray(){
@@ -92,7 +143,7 @@ public class NoiseVisualization : Visualization
             domain.translation += new float3(animationSpeed * Time.deltaTime, animationSpeed * (1f / 5f) * Time.deltaTime, animationSpeed * Time.deltaTime);
         }
 
-        NoiseJobs[(int)gradientType, 2 * ((int)noiseType + 1)- (enableTiling ? 1 : 2)](positions, noise, noiseSettings, domain, resolution, handle).Complete();
+        NoiseJobs[(int)gradientType , 2 * ((int)noiseType + 1)- (enableTiling ? 1 : 2)](positions, noise, noiseSettings, domain, resolution, handle).Complete();
         // NoiseJobs[(int)gradientType, (int)noiseType](positions, noise, seed, new SpaceTRS {scale = 64}, resolution, jobHandle).Complete();
         noiseBuffer.SetData(noise.Reinterpret<float>(4 * 4));
     }

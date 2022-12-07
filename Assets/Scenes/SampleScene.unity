@@ -507,7 +507,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
       propertyPath: shape
-      value: 2
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
+      propertyPath: noiseType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
+      propertyPath: resolution
+      value: 512
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
+      propertyPath: displacement
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
+      propertyPath: enableTiling
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
+      propertyPath: gradientType
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109097724061393537, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
+      propertyPath: noiseSettings.octaves
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8109097724061393538, guid: 7617bf5178f2a4746937c831f05f62f1, type: 3}
       propertyPath: m_Name
